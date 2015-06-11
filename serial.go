@@ -214,9 +214,8 @@ func (s *Serial) SetCtrl(ctr int) error {
 }
 
 // ReadLine reads text line.
-//  Timeout is the max time to wait for line completion, when timeout occurs EOF error is returned.
-//  Serial.LineIgnore field has characters to be ignored (by default "\r").
-//  Serial.LineEnd field has end of line characters (by default "\n").
+// Serial.LineIgnore field has characters to be ignored (by default "\r").
+// Serial.LineEnd field has end of line characters (by default "\n").
 func (s *Serial) ReadLine() (res string, err error) {
 	var b byte
 	for {
