@@ -111,7 +111,7 @@ func (s *Serial) init() error {
 	t.Iflag = (0)
 	t.Oflag = (0)
 	t.Lflag = (0)
-	t.Cflag = (baud[9600] | bits[8] | syscall.CLOCAL | syscall.HUPCL)
+	t.Cflag = (baud[9600] | bits[8] | syscall.CLOCAL | syscall.HUPCL | syscall.CREAD)
 	t.Cc[syscall.VMIN] = 1
 	t.Cc[syscall.VTIME] = 0
 	t.Ispeed = baud[9600]
