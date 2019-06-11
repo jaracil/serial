@@ -1,4 +1,4 @@
-#serial [![GoDoc](https://godoc.org/github.com/jaracil/serial?status.png)](https://godoc.org/github.com/jaracil/serial)
+# serial [![GoDoc](https://godoc.org/github.com/jaracil/serial?status.png)](https://godoc.org/github.com/jaracil/serial)
 Go package for serial devices.
 
 Download:
@@ -6,7 +6,7 @@ Download:
 go get github.com/jaracil/serial
 ```
 
-##Description
+## Description
 
 Go package for serial devices.
 
