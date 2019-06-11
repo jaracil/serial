@@ -19,9 +19,9 @@ type Serial struct {
 }
 
 const (
-	PAR_NONE = iota // No parity
-	PAR_EVEN        // Even parity
-	PAR_ODD         // Odd parity
+	PAR_NONE = iota	// No parity
+	PAR_EVEN		// Even parity
+	PAR_ODD			// Odd parity
 	PAR_SPACE		// SPACE parity
 	PAR_MARK		// MARK parity
 )
