@@ -57,6 +57,7 @@ const (
 	cbaudex = 0010000
 	crtscts = 020000000000
 	tcflsh  = 0x540B
+	cmspar 	= 0x40000000
 )
 
 // Constants for modem control silgnals mask
@@ -172,6 +173,25 @@ func (s *Serial) setParity(mode int) error {
 	case PAR_ODD:
 		t.Cflag |= syscall.PARENB
 		t.Cflag |= syscall.PARODD
+	case PAR_SPACE:
+		t.Cflag |= cmspar			// Set "stick" parity (either mark or space)
+		t.Cflag &^= syscall.PARODD 	// Select space parity so that only address byte causes error
+	
+		// NOTE: The following block overrides PARMRK and PARENB bits.
+		t.Cflag |=  syscall.PARENB     	// Enable parity generation
+		t.Iflag |=  syscall.INPCK		// Enable parity checking
+		t.Iflag |=  syscall.PARMRK     	// Enable in-band marking 
+		t.Iflag &^= syscall.IGNPAR		// Make sure input parity errors are not ignored
+	case PAR_MARK: // TODO: Implement Read and Write and add test
+		return errors.New("parity mode not implemented")
+		// This is the supposed configuration for enabling MARK parity
+		// t.Cflag |= cmspar
+		// t.Cflag |= syscall.PARODDWW
+		// // NOTE: The following block overrides PARMRK and PARENB bits.
+		// t.Cflag |=  syscall.PARENB     	// Enable parity generation
+		// t.Iflag |=  syscall.INPCK		// Enable parity checking
+		// t.Iflag |=  syscall.PARMRK     	// Enable in-band marking 
+		// t.Iflag &^= syscall.IGNPAR		// Make sure input parity errors are not ignored
 	default:
 		return errors.New("invalid parity mode")
 	}

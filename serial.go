@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"syscall"
 
 	"github.com/jaracil/poll"
 )
@@ -18,9 +19,11 @@ type Serial struct {
 }
 
 const (
-	PAR_NONE = iota // No parity
-	PAR_EVEN        // Even parity
-	PAR_ODD         // Odd parity
+	PAR_NONE = iota	// No parity
+	PAR_EVEN		// Even parity
+	PAR_ODD			// Odd parity
+	PAR_SPACE		// SPACE parity
+	PAR_MARK		// MARK parity
 )
 
 const (
@@ -90,6 +93,67 @@ func (s *Serial) ReadByte() (byte, error) {
 	return 0, e
 }
 
+// Write9Bits writes one byte to serial and sets the 9th bit.
+func (s *Serial) Write9Bits(pkg uint16) error {
+	// TODO: Check way it is not writing the parity bit.
+	var err error
+	pkg1 := byte(pkg)
+	parityBit := byte((pkg>>8)&0x01)
+
+	if parityBit == 0x01{
+		var t Termios
+		if err := s.tcGetAttr(&t); err != nil {
+			return err
+		}
+	
+		t.Cflag |= syscall.PARODD
+		if err := s.tcSetAttr(&t); err != nil {
+			return err
+		}	
+
+		_, err = s.f.Write([]byte{pkg1})
+		if err != nil {
+			return err
+		}
+	
+		t.Cflag &^= syscall.PARODD
+		if err := s.tcSetAttr(&t); err != nil {
+			return err
+		}
+
+	}else{
+		_, err = s.f.Write([]byte{pkg1})
+		if err != nil {
+			return err
+		}
+	
+	}
+	return nil
+}
+
+// Read9Bits reads 9bits from serial.
+func (s *Serial) Read9Bits() (uint16, error) {
+	buf := make([]byte, 1)
+	var e error
+	var n int
+	n, e = s.f.Read(buf)
+	if n >= 1 {
+		if buf[0] == 0xFF { // got escape byte
+			n, e = s.f.Read(buf)
+			if n >= 1 && buf[0] == 0x00 { // parity bit set
+				n, e = s.f.Read(buf)
+				if n == 1 {
+					return (uint16(buf[0]) | 0x100), nil
+				}
+			} else if buf[0] != 0xFF {
+				return 0 , errors.New("invalid byte sequence")
+			}
+		}
+		return uint16(buf[0]), nil
+	}
+	return 0, e
+}
+
 // Name returns serial file name.
 func (s *Serial) Name() string {
 	return s.f.Name()
@@ -141,6 +205,8 @@ func (s *Serial) SetStopBits(stop int) error {
 //   PAR_NONE
 //   PAR_EVEN
 //   PAR_ODD
+//	 PAR_SPACE
+//	 PAR_MARK
 func (s *Serial) SetParity(mode int) error {
 	return s.setParity(mode)
 }
